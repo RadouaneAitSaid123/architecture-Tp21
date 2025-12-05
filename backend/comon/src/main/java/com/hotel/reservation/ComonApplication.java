@@ -43,13 +43,29 @@ public class ComonApplication {
             // Insertion des chambres
             log.info("🛏️ Insertion des chambres...");
             Chambre ch1 = chambreService.createChambre(
-                    new Chambre(null, TypeChambre.SIMPLE, new BigDecimal("500.00"), true));
+                    Chambre.builder()
+                            .type(TypeChambre.SIMPLE)
+                            .prix(new BigDecimal("500.00"))
+                            .build()
+            );
             Chambre ch2 = chambreService.createChambre(
-                    new Chambre(null, TypeChambre.DOUBLE, new BigDecimal("800.00"), true));
+                    Chambre.builder()
+                            .type(TypeChambre.DOUBLE)
+                            .prix(new BigDecimal("800.00"))
+                            .build()
+            );
             Chambre ch3 = chambreService.createChambre(
-                    new Chambre(null, TypeChambre.SUITE, new BigDecimal("1500.00"), true));
+                    Chambre.builder()
+                            .type(TypeChambre.SUITE)
+                            .prix(new BigDecimal("1500.00"))
+                            .build()
+            );
             Chambre ch4 = chambreService.createChambre(
-                    new Chambre(null, TypeChambre.FAMILIALE, new BigDecimal("1200.00"), true));
+                    Chambre.builder()
+                            .type(TypeChambre.FAMILIALE)
+                            .prix(new BigDecimal("1200.00"))
+                            .build()
+            );
             log.info("✅ {} chambres insérées", chambreService.count());
 
             // Insertion des réservations

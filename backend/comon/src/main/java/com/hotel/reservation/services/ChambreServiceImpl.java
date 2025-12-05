@@ -30,7 +30,6 @@ public class ChambreServiceImpl implements ChambreService {
         Chambre savedChambre = new Chambre();
         savedChambre.setType(chambre.getType());
         savedChambre.setPrix(chambre.getPrix());
-        savedChambre.setDisponible(true);
 
         return chambreRepository.save(chambre);
     }
@@ -51,13 +50,6 @@ public class ChambreServiceImpl implements ChambreService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Chambre> getChambresDisponibles() {
-        log.debug("Récupération des chambres disponibles");
-        return chambreRepository.findByDisponible(true);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<Chambre> getChambresByType(TypeChambre type) {
         log.debug("Récupération des chambres de type : {}", type);
         return chambreRepository.findByType(type);
@@ -72,20 +64,8 @@ public class ChambreServiceImpl implements ChambreService {
 
         chambre.setType(type);
         chambre.setPrix(prix);
-        chambre.setDisponible(disponible);
 
         return chambreRepository.save(chambre);
-    }
-
-    @Override
-    public void updateDisponibilite(Long id, boolean disponible) {
-        log.debug("Mise à jour de la disponibilité de la chambre {} : {}", id, disponible);
-
-        Chambre chambre = chambreRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Chambre non trouvée avec l'ID : " + id));
-
-        chambre.setDisponible(disponible);
-        chambreRepository.save(chambre);
     }
 
     @Override

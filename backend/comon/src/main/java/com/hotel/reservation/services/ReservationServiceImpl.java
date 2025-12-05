@@ -46,9 +46,15 @@ public class ReservationServiceImpl implements ReservationService {
         Chambre chambre = chambreService.getChambreById(reservation.getChambre().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Chambre non trouvée avec l'ID : " + reservation.getChambre().getId()));
 
-        // Vérifier la disponibilité de la chambre
-        if (Boolean.FALSE.equals(chambre.getDisponible())) {
-            throw new IllegalArgumentException("La chambre n'est pas disponible");
+        // Vérifier la disponibilité de la chambre pour la période demandée
+        List<Reservation> reservationsConflict = reservationRepository.findConflictingReservations(
+                chambre.getId(),
+                reservation.getDateDebut(),
+                reservation.getDateFin()
+        );
+
+        if (!reservationsConflict.isEmpty()) {
+            throw new IllegalArgumentException("La chambre n'est pas disponible pour la période demandée");
         }
 
         // Créer la réservation
@@ -60,10 +66,6 @@ public class ReservationServiceImpl implements ReservationService {
         res.setPreferences(reservation.getPreferences());
 
         Reservation savedReservation = reservationRepository.save(res);
-
-        // Marquer la chambre comme non disponible
-        chambre.setDisponible(false);
-        chambreService.createChambre(chambre);
 
         return savedReservation;
     }
@@ -110,11 +112,24 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Réservation non trouvée avec l'ID : " + id));
 
-        // Libérer l'ancienne chambre si elle change
-        if (!reservation.getChambre().getId().equals(chambreId)) {
-            Chambre ancienneChambre = reservation.getChambre();
-            ancienneChambre.setDisponible(true);
-            chambreService.createChambre(ancienneChambre);
+        // Si les dates changent OU la chambre change, vérifier la disponibilité
+        if (!reservation.getChambre().getId().equals(chambreId)
+                || !reservation.getDateDebut().equals(dateDebut)
+                || !reservation.getDateFin().equals(dateFin)) {
+
+            // Vérifier la disponibilité de la chambre pour la nouvelle période
+            // Exclure la réservation actuelle du conflit (si on garde la même chambre)
+            List<Reservation> reservationsConflict = reservationRepository.findConflictingReservations(
+                            chambreId,
+                            dateDebut,
+                            dateFin
+                    ).stream()
+                    .filter(r -> !r.getId().equals(id)) // Exclure la réservation actuelle
+                    .toList();
+
+            if (!reservationsConflict.isEmpty()) {
+                throw new IllegalArgumentException("La chambre n'est pas disponible pour la période demandée");
+            }
         }
 
         // Récupérer le nouveau client
@@ -124,10 +139,6 @@ public class ReservationServiceImpl implements ReservationService {
         Chambre chambre = chambreService.getChambreById(chambreId)
                 .orElseThrow(() -> new IllegalArgumentException("Chambre non trouvée avec l'ID : " + chambreId));
 
-        // Vérifier la disponibilité de la nouvelle chambre
-        if (!chambre.getId().equals(reservation.getChambre().getId()) && !chambre.getDisponible()) {
-            throw new IllegalArgumentException("La nouvelle chambre n'est pas disponible");
-        }
 
         // Mettre à jour la réservation
         reservation.setClient(client);
@@ -135,26 +146,15 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setDateDebut(dateDebut);
         reservation.setDateFin(dateFin);
 
-        Reservation updatedReservation = reservationRepository.save(reservation);
-
-        // Marquer la nouvelle chambre comme non disponible
-        chambre.setDisponible(false);
-        chambreService.createChambre(chambre);
-
-        return updatedReservation;
+        return reservationRepository.save(reservation);
     }
 
     @Override
     public void deleteReservation(Long id) {
         log.debug("Suppression de la réservation avec l'ID : {}", id);
 
-        Reservation reservation = reservationRepository.findById(id)
+        reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Réservation non trouvée avec l'ID : " + id));
-
-        // Libérer la chambre
-        Chambre chambre = reservation.getChambre();
-        chambre.setDisponible(true);
-        chambreService.createChambre(chambre);
 
         reservationRepository.deleteById(id);
 
