@@ -13,6 +13,7 @@ import java.util.List;
  **/
 @RestController
 @RequestMapping("/api/reservations")
+@CrossOrigin(origins = "*")
 public class ReservationController {
 
     private final ReservationService reservationService;
@@ -44,20 +45,14 @@ public class ReservationController {
 
     // UPDATE (dates + client/chambre par id)
     @PutMapping("/{id}")
-    public ResponseEntity<Reservation> update(
-            @PathVariable Long id,
-            @RequestParam Long clientId,
-            @RequestParam Long chambreId,
-            @RequestParam String dateDebut,
-            @RequestParam String dateFin) {
-
+    public ResponseEntity<Reservation> update(@PathVariable Long id, @RequestBody Reservation reservation) {
         Reservation updated = reservationService.updateReservation(
                 id,
-                clientId,
-                chambreId,
-                LocalDate.parse(dateDebut),
-                LocalDate.parse(dateFin)
-        );
+                reservation.getClient().getId(),
+                reservation.getChambre().getId(),
+                reservation.getDateDebut(),
+                reservation.getDateFin(),
+                reservation.getPreferences());
         return ResponseEntity.ok(updated);
     }
 

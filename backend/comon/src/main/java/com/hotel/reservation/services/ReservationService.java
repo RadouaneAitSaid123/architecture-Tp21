@@ -16,7 +16,7 @@ public interface ReservationService {
     List<Reservation> getAllReservations();
     List<Reservation> getReservationsByClientId(Long clientId);
     List<Reservation> getReservationsByChambreId(Long chambreId);
-    Reservation updateReservation(Long id, Long clientId, Long chambreId, LocalDate dateDebut, LocalDate dateFin);
+    Reservation updateReservation(Long id, Long clientId, Long chambreId, LocalDate dateDebut, LocalDate dateFin, String preferences);
     void deleteReservation(Long id);
     long count();
 

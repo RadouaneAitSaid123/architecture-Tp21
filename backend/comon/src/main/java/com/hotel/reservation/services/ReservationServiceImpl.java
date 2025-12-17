@@ -100,7 +100,7 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public Reservation updateReservation(Long id, Long clientId, Long chambreId, LocalDate dateDebut, LocalDate dateFin) {
+    public Reservation updateReservation(Long id, Long clientId, Long chambreId, LocalDate dateDebut, LocalDate dateFin, String preferences) {
         log.debug("Mise à jour de la réservation avec l'ID : {}", id);
 
         // Validation des dates
@@ -145,6 +145,7 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setChambre(chambre);
         reservation.setDateDebut(dateDebut);
         reservation.setDateFin(dateFin);
+        reservation.setPreferences(preferences);
 
         return reservationRepository.save(reservation);
     }
